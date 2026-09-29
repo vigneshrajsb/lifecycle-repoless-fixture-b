@@ -1,0 +1,41 @@
+environment:
+  autoDeploy: true
+  defaultServices:
+    - name: 'api-b'
+    - name: 'api'
+      repository: 'vigneshrajsb/lifecycle-repoless-fixture'
+      branch: 'trunk'
+
+services:
+  - name: 'api-b'
+    requires:
+      - name: 'kv'
+    github:
+      repository: 'vigneshrajsb/lifecycle-repoless-fixture-b'
+      branchName: 'trunk'
+      docker:
+        builder:
+          engine: 'buildkit'
+        defaultTag: 'trunk'
+        app:
+          dockerfilePath: 'Dockerfile'
+          ports:
+            - 8080
+          env:
+            SERVICE: 'api-b'
+            KV_HOST: '{{kv_internalHostname}}'
+      deployment:
+        public: false
+        readiness:
+          tcpSocketPort: 8080
+
+  - name: 'kv'
+    docker:
+      dockerImage: 'redis'
+      defaultTag: '7.4-alpine'
+      ports:
+        - 6379
+      deployment:
+        public: false
+        readiness:
+          tcpSocketPort: 6379
